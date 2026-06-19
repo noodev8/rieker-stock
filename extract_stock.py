@@ -141,11 +141,16 @@ def main() -> None:
     pdfs = sorted(glob.glob(os.path.join(args.folder, "*.pdf")))
     if not pdfs:
         raise SystemExit(f"No PDFs found in {args.folder!r}")
+    if len(pdfs) > 1:
+        names = ", ".join(os.path.basename(p) for p in pdfs)
+        raise SystemExit(
+            f"Found {len(pdfs)} PDFs in {args.folder!r} ({names}). "
+            "Please keep exactly one PDF in the folder and try again."
+        )
 
-    rows: list[StockRow] = []
-    for p in pdfs:
-        print(f"Parsing {os.path.basename(p)} ...")
-        rows.extend(extract_pdf(p))
+    p = pdfs[0]
+    print(f"Parsing {os.path.basename(p)} ...")
+    rows: list[StockRow] = list(extract_pdf(p))
 
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump([asdict(r) for r in rows], f, indent=2)
